@@ -1,3 +1,27 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # tasks file for actionRole
+- name: Create a user
+  ansible.builtin.user:
+     # reference -> https://docs.ansible.com/projects/ansible/latest/collections/ansible/builtin/user_module.html#ansible-collections-ansible-builtin-user-module
+      name: test-user-5
+      create_home: 'yes'
+  become: true
+  
+ #- name: Create ssh directory to put private key in authorized_keys
+  ansible.builtin.file:
+    # reference -> https://docs.ansible.com/projects/ansible/latest/collections/ansible/builtin/file_module.html#examples
+      path: /home/test-user-5/.ssh
+      state: directory
+  become: true
+ #- name: Paste the public key in authorized_keys
+ #  ansible.posix.authorized_key:
+ #      user: test-user-5
+ #      state: present
+ #      key: '{{ lookup(''file'', ''/Users/veshalik/.ssh/id_ed25519.pub'') }}'
+ #  become: true
+ #- name: Ensure SSH service is running
+ #  ansible.builtin.service:
+ #      name: sshd
+ #      state: started
+ #      enabled: 'yes'
