@@ -1,5 +1,7 @@
 name: Create user on newly added host in inventory
-on: push
+on: 
+  push:
+    branches: [master]
 jobs:
   get-difference:
   runs-on: ubuntu-latest
