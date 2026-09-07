@@ -1,0 +1,46 @@
+name: Create user on newly added host in inventory
+on: push
+jobs:
+  get-difference:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout with full histoey
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Identify newly added hosts
+        id: diff
+        run: |
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.sha }}"
+
+          NEW_HOSTS=$(git diff --unified=0 "$BEFORE" "$AFTER" -- inventory.ini \
+              | grep -E '^\+[^+]' \
+              | sed -E 's/^\+//' \
+              | grep -v '^\[' \
+              | awk 'NF{print $1}' \
+              | sort -u \
+              | paste -sd, -)
+
+          echo "New hosts: $NEW_HOSTS"
+          echo "hosts=$NEW_HOSTS" >> $GITHUB_OUTPUT
+
+      - name: Set up the runner with python& ansible
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install ansible
+        run: pip install ansible
+      - name: Add SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $(echo "${{ steps.diff.outputs.hosts }}" | tr ',' ' ') >> ~/.ssh/known_hosts 2>/dev/null || true
+      - name: Create user on new hosts
+        if: steps.diff.outputs.hosts != ''
+        run: |
+          ansible-playbook -i inventory.ini start.yml --limit "${{ steps.diff.outputs.hosts }}" --private-key ~/.ssh/id_rsa
+      
+
+
