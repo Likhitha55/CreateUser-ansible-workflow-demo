@@ -2,6 +2,7 @@ name: Create user on newly added host in inventory
 on: 
   push:
     branches: [master]
+  workflow_dispatch: {}
 jobs:
   get-difference:
     runs-on: ubuntu-latest
