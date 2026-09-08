@@ -37,14 +37,13 @@ jobs:
       - name: Add SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H $(echo "${{ steps.diff.outputs.hosts }}" | tr ',' ' ') >> ~/.ssh/known_hosts 2>/dev/null || true
+
       - name: Create user on new hosts
         if: steps.diff.outputs.hosts != ''
         run: |
-          ansible-playbook -i inventory.ini start.yml --limit "${{ steps.diff.outputs.hosts }}" --private-key ~/.ssh/id_ed25519
+          ansible-playbook -i inventory.ini start.yml --limit "${{ steps.diff.outputs.hosts }}" --private-key ~/.ssh/id_rsa
       
-
-Hello
 
